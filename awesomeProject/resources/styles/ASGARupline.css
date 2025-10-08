@@ -1,0 +1,47 @@
+/* Стили для шапки */
+.site-header {
+    background: white; /* ШАПКА БЕЛАЯ */
+    width: 100%;     /* Ширина 1280px */
+    height: 64px;      /* Высота 64px */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: 3px solid #e0e0e0; /* Легкая граница снизу */
+    position: relative; /* Для абсолютного позиционирования дочерних элементов */
+}
+
+.header-container {
+    width: 100%;       /* Занимает всю ширину шапки */
+    height: 100%;      /* Занимает всю высоту шапки */
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    position: absolute; /* Абсолютное позиционирование */
+    left: 20px;        /* 20px от левого края */
+    top: 10px;         /* 10px от верхнего края */
+}
+
+.logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #10349E;
+}
+
+.logo-img {
+    height: 40px;
+    width: 60px;
+    margin-right: 12px;
+    border-radius: 8px;
+}
+
+.company-name {
+    font-size: 2.2rem;
+    font-weight: bold; 
+    color: #10349E;
+    transform: skewX(-15deg);
+    display: inline-block;
+}

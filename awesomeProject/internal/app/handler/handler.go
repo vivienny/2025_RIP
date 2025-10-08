@@ -19,52 +19,49 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-func (h *Handler) GetOrders(ctx *gin.Context) {
-	var orders []repository.Order
+func (h *Handler) GetAsgarList(ctx *gin.Context) {
+	var aviationServices []repository.ASGARserv
 	var err error
 
-	searchQuery := ctx.Query("query") // получаем значение из поля поиска
-	if searchQuery == "" {            // если поле поиска пусто, то просто получаем из репозитория все записи
-		orders, err = h.Repository.GetOrders()
+	findavia := ctx.Query("query")
+	if findavia == "" {
+		aviationServices, err = h.Repository.GetAsgarList()
 		if err != nil {
 			logrus.Error(err)
 		}
 	} else {
-		orders, err = h.Repository.GetOrdersByTitle(searchQuery) // в ином случае ищем заказ по заголовку
+		aviationServices, err = h.Repository.GetFindAviaSub(findavia)
 		if err != nil {
 			logrus.Error(err)
 		}
 	}
 
-	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"orders": orders,
-		"query":  searchQuery, // передаем введенный запрос обратно на страницу
-		// в ином случае оно будет очищаться при нажатии на кнопку
+	ctx.HTML(http.StatusOK, "asgar_catalog.html", gin.H{
+		"aviationServices": aviationServices,
+		"findavia":         findavia,
 	})
 }
 
-func (h *Handler) GetOrder(ctx *gin.Context) {
+func (h *Handler) GetSelectAviaSub(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		logrus.Error(err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID"}) // Добавьте возврат ошибки
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID"})
 		return
 	}
 
-	order, err := h.Repository.GetOrder(id)
+	selsubavia, err := h.Repository.GetSelectAviaSub(id)
 	if err != nil {
 		logrus.Error(err)
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()}) // Добавьте возврат ошибки
-		return
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	}
 
-	ctx.HTML(http.StatusOK, "order.html", gin.H{
-		"order": order,
+	ctx.HTML(http.StatusOK, "selected_aviaproduct.html", gin.H{
+		"selsubavia": selsubavia,
 	})
 }
 
-// ДОБАВЛЕН НОВЫЙ ОБРАБОТЧИК ДЛЯ КОРЗИНЫ
-func (h *Handler) GetCart(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "cart.html", gin.H{})
+func (h *Handler) GetMiniPlane(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "miniplane.html", gin.H{})
 }

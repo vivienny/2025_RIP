@@ -1,0 +1,62 @@
+<html lang="ru">
+<head>
+    <title>АСГАР - {{ .selsubavia.Title }}</title>
+    <link rel="stylesheet" href="/static/styles/findsubavia.css">
+    <link rel="stylesheet" href="/static/styles/servaviavariants.css"> 
+    <link rel="stylesheet" href="/static/styles/ASGARupline.css">
+    <link rel="stylesheet" href="/static/styles/intominiplane.css">
+    <link rel="stylesheet" href="/static/styles/asgarheadlines.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="/ASGARcatalog">
+                <img src="/static/img/logo.png" alt="ASGAR logo" class="logo-img">
+                <span class="company-name">АСГАР</span>
+            </a>
+        </div>
+
+        <div class="search-container">
+            <form action="/ASGARcatalog" method="GET" class="search-form">
+                <input type="text" name="query" placeholder="Поиск услуг..." value="" class="search-input">
+                <button type="submit" class="search-button">
+                    <img src="/static/img/searchicon.jpg" alt="Search" width="20">
+                </button>
+            </form>
+        </div>
+
+        <div class="cart-container">
+            <a href="/miniplane" class="cart-button">
+                <img src="/static/img/bascketicon.jpg" alt="Корзина" width="40">
+                <span class="cart-count">2</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="services-title">
+        <h1>ВЫБРАННЫЙ ТОВАР</h1>
+    </div>
+
+    <div class="single-service-container">
+        <div class="single-service-card">
+            <div class="single-service-image">
+                <img src="{{ .selsubavia.ImageURL }}" alt="{{ .selsubavia.Title }}">
+            </div>
+            
+            <div class="single-service-content">
+                <h2>{{ .selsubavia.Title }}</h2>
+                <p class="service-description">{{ .selsubavia.Description }}</p>
+                <p class="service-full-description">{{ .selsubavia.FullDescription }}</p>
+                
+                <div class="service-price">
+                    <span class="price">{{ .selsubavia.Price }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

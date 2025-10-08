@@ -1,0 +1,62 @@
+<html lang="ru">
+<head>
+    <title>АСГАР</title>
+    <link rel="stylesheet" href="/static/styles/servaviavariants.css">
+    <link rel="stylesheet" href="/static/styles/findsubavia.css">
+    <link rel="stylesheet" href="/static/styles/ASGARupline.css">
+    <link rel="stylesheet" href="/static/styles/asgarheadlines.css">
+    <link rel="stylesheet" href="/static/styles/intominiplane.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="/ASGARcatalog">
+                <img src="/static/img/logo.png" alt="ASGAR logo" class="logo-img">
+                <span class="company-name">АСГАР</span>
+            </a>
+        </div>
+
+        <div class="search-container">
+            <form action="/ASGARcatalog" method="GET" class="search-form">
+                <input type="text" name="query" placeholder="Поиск услуг..." value="{{ .findavia }}" class="search-input">
+                <button type="submit" class="search-button">
+                    <img src="/static/img/searchicon.jpg" alt="Search" width="20">
+                </button>
+            </form>
+        </div>
+
+        <div class="cart-container">
+            <a href="/miniplane" class="cart-button">
+                <img src="/static/img/bascketicon.jpg" alt="Корзина" width="40">
+                <span class="cart-count">2</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="services-title">
+        <h1>СЕРВИСЫ И УСЛУГИ</h1>
+    </div>
+
+    <div class="services-container">
+        {{ range .aviationServices }}
+        <div class="service-card">
+            <div class="card-content">
+                <img src="{{ .ImageURL }}" alt="{{ .Title }}" class="card-image">
+                <h3>{{ .Title }}</h3>
+                <p>{{ .Description }}</p>
+                <div class="price">{{ .Price }}.</div>
+                <a href="/SelectAviaSub/{{ .ID }}" class="card-button">Подробнее</a>
+            </div>
+        </div>
+        {{ else }}
+        <div class="no-results">
+            <p>Ничего не найдено. Попробуйте другой запрос.</p>
+        </div>
+        {{ end }}
+    </div>
+</main>
+</body>
+</html>

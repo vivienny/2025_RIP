@@ -33,6 +33,7 @@ type FlightParam struct {
 
 func NewRepository() (*Repository, error) {
 	return &Repository{
+
 		FlightParam: make(map[int]FlightParam),
 	}, nil
 }

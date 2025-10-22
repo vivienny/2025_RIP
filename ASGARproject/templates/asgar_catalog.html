@@ -1,0 +1,64 @@
+<html lang="ru">
+<head>
+    <title>АСГАР</title>
+    <link rel="stylesheet" href="/static/styles/servaviavariants.css">
+    <link rel="stylesheet" href="/static/styles/findsubavia.css">
+    <link rel="stylesheet" href="/static/styles/ASGARupline.css">
+    <link rel="stylesheet" href="/static/styles/asgarheadlines.css">
+    <link rel="stylesheet" href="/static/styles/intominiplany.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="/">
+                <img src="/static/img/logo.png" alt="ASGAR logo" class="logo-img">
+                <span class="company-name">АСГАР</span>
+            </a>
+        </div>
+
+        <div class="search-container">
+            <form action="/" method="GET" class="search-form">
+                <input type="text" name="search" placeholder="Поиск услуг..." value="{{ .search }}" class="search-input">
+                <button type="submit" class="search-button">
+                    <img src="/static/img/searchicon.jpg" alt="Search" width="20">
+                </button>
+            </form>
+        </div>
+
+        <div class="cart-container">
+            <a href="/miniplane" class="cart-button">
+                <img src="/static/img/bascketicon.jpg" alt="Корзина" width="40">
+                {{ if ne .cart_count 0 }}
+                <span class="cart-count">{{ .cart_count }}</span>
+                {{ end }}
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="services-title">
+        <h1>СЕРВИСЫ И УСЛУГИ</h1>
+    </div>
+
+    <div class="services-container">
+        {{ range .services }}
+        <div class="service-card">
+            <div class="card-content">
+                <img src="{{ .Img }}" alt="{{ .Name }}" class="card-image">
+                <h3>{{ .Name }}</h3>
+                <p>{{ .Info }}</p>
+                <div class="price">{{ .Price }} {{ .Unit }}</div>
+                <a href="/service/{{ .ID }}" class="card-button">Подробнее</a>
+            </div>
+        </div>
+        {{ else }}
+        <div class="no-results">
+            <p>Ничего не найдено. Попробуйте другой запрос.</p>
+        </div>
+        {{ end }}
+    </div>
+</main>
+</body>
+</html>

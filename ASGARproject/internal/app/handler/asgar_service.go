@@ -32,27 +32,8 @@ func (h *Handler) GetAsgarServices(ctx *gin.Context) {
 
 	ctx.HTML(http.StatusOK, "asgar_catalog.html", gin.H{
 		"services":   services,
-		"cart_count": h.Repository.GetMiniplaneItemsCount(),
+		"cart_count": h.Repository.GetCartItemsCount(), // ← ИЗМЕНИЛИ
 		"search":     search,
-	})
-}
-
-func (h *Handler) GetAsgarService(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
-		return
-	}
-
-	service, err := h.Repository.GetAsgarService(id)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
-		return
-	}
-
-	ctx.HTML(http.StatusOK, "selected_aviaproduct.html", gin.H{
-		"service": service,
 	})
 }
 
@@ -62,10 +43,10 @@ func (h *Handler) GetMiniplane(ctx *gin.Context) {
 
 	logrus.Printf("🛒 HANDLER: Начинаем поиск корзины для UserID=%d", userID)
 
-	// Получаем активную корзину
-	miniplaneID, err := h.Repository.GetActiveMiniplaneID(userID)
+	// Получаем активную корзину-заявку
+	flightServID, err := h.Repository.GetOrCreateCartFlightServ(userID) // ← ИЗМЕНИЛИ
 	if err != nil {
-		logrus.Printf("❌ HANDLER: Корзина не найдена для UserID=%d, ошибка: %v", userID, err)
+		logrus.Printf("❌ HANDLER: Корзина не найдена для UserID=%d, ошибка: %v", userID)
 		// Если корзины нет - создаем пустую
 		ctx.HTML(http.StatusOK, "miniplane.html", gin.H{
 			"items": []ds.Subjserv{},
@@ -74,10 +55,10 @@ func (h *Handler) GetMiniplane(ctx *gin.Context) {
 		return
 	}
 
-	logrus.Printf("✅ HANDLER: Корзина найдена, MiniplaneID=%d", miniplaneID)
+	logrus.Printf("✅ HANDLER: Корзина найдена, FlightServID=%d", flightServID)
 
 	// Получаем позиции корзины
-	items, err := h.Repository.GetMiniplaneItems(miniplaneID)
+	items, err := h.Repository.GetCartItems(flightServID) // ← ИЗМЕНИЛИ
 	if err != nil {
 		logrus.Printf("❌ HANDLER: Ошибка получения позиций корзины: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -129,7 +110,7 @@ func (h *Handler) RemoveFromMiniplane(ctx *gin.Context) {
 
 	logrus.Printf("🗑️ HANDLER: Удаление позиции из корзины, SubjservID=%d", id)
 
-	err = h.Repository.RemoveFromMiniplane(uint(id))
+	err = h.Repository.RemoveFromCart(uint(id)) // ← ИЗМЕНИЛИ
 	if err != nil {
 		logrus.Printf("❌ HANDLER: Ошибка удаления позиции: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -149,15 +130,15 @@ func (h *Handler) ClearMiniplane(ctx *gin.Context) {
 
 	logrus.Printf("🗑️ HANDLER: Очистка корзины для UserID=%d", userID)
 
-	// Получаем активную корзину
-	miniplaneID, err := h.Repository.GetActiveMiniplaneID(userID)
+	// Получаем активную корзину-заявку
+	flightServID, err := h.Repository.GetOrCreateCartFlightServ(userID) // ← ИЗМЕНИЛИ
 	if err != nil {
 		logrus.Printf("❌ HANDLER: Корзина не найдена для очистки")
 		ctx.Redirect(http.StatusFound, "/miniplane")
 		return
 	}
 
-	err = h.Repository.ClearMiniplane(miniplaneID)
+	err = h.Repository.ClearCart(flightServID) // ← ИЗМЕНИЛИ
 	if err != nil {
 		logrus.Printf("❌ HANDLER: Ошибка очистки корзины: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -170,7 +151,27 @@ func (h *Handler) ClearMiniplane(ctx *gin.Context) {
 	ctx.Redirect(http.StatusFound, "/miniplane")
 }
 
-// formatPrice форматирует цену с пробелами
+// GetAsgarService получает конкретную услугу
+func (h *Handler) GetAsgarService(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	service, err := h.Repository.GetAsgarService(id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "selected_aviaproduct.html", gin.H{
+		"service": service,
+	})
+}
+
+// formatPrice форматирует цену с пробелами (оставляем без изменений)
 func formatPrice(price int) string {
 	priceStr := strconv.Itoa(price)
 	if len(priceStr) <= 3 {

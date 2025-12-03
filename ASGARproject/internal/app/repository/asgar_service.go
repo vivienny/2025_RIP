@@ -110,3 +110,17 @@ func (r *Repository) CreateUser(user *ds.Avius) error {
 func (r *Repository) UpdateUser(id uint, updates map[string]interface{}) error {
 	return r.db.Model(&ds.Avius{}).Where("id = ?", id).Updates(updates).Error
 }
+
+// GetFilteredServices - услуги с фильтрацией (для будущего расширения)
+func (r *Repository) GetFilteredServices(search string) ([]ds.ASGARService, error) {
+	var services []ds.ASGARService
+	query := r.db.Where("is_delete = ?", false)
+
+	if search != "" {
+		query = query.Where("name ILIKE ? OR info ILIKE ?",
+			"%"+search+"%", "%"+search+"%")
+	}
+
+	err := query.Find(&services).Error
+	return services, err
+}

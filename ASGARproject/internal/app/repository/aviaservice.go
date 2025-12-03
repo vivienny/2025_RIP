@@ -15,7 +15,15 @@ func (r *Repository) GetAllServices() ([]ds.ASGARService, error) {
 
 func (r *Repository) SearchServicesByName(name string) ([]ds.ASGARService, error) {
 	var services []ds.ASGARService
-	err := r.db.Where("name ILIKE ? AND is_delete = ?", "%"+name+"%", false).Find(&services).Error
+	query := r.db.Where("is_delete = ?", false)
+
+	// Если name не пустой - добавляем фильтр
+	if name != "" {
+		query = query.Where("name ILIKE ?", "%"+name+"%")
+	}
+
+	// Всегда сортируем по ID
+	err := query.Order("id ASC").Find(&services).Error
 	if err != nil {
 		return nil, err
 	}

@@ -47,3 +47,10 @@ func (r *Repository) GetCartItemsCount() int64 {
 	r.db.Model(&ds.Subjserv{}).Where("flight_serv_id = ?", flightServID).Count(&count)
 	return count
 }
+
+// GetFlightServByID - получить заявку по ID
+func (r *Repository) GetFlightServByID(id uint) (ds.FlightServ, error) {
+	var flightServ ds.FlightServ
+	err := r.db.Preload("User").First(&flightServ, id).Error
+	return flightServ, err
+}

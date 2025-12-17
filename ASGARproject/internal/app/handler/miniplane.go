@@ -13,7 +13,8 @@ import (
 // ================ ДОМЕН: МИНИПЛЭЙН (2 метода) ================
 
 func (h *Handler) GetMiniplaneIcon(ctx *gin.Context) {
-	userID := GetCurrentUserID()
+	userID := uint(1) // ← Вместо GetCurrentUserID()
+
 	flightServID, err := h.Repository.GetOrCreateCartFlightServ(userID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -45,7 +46,8 @@ func (h *Handler) GetMiniplaneIcon(ctx *gin.Context) {
 }
 
 func (h *Handler) GetMiniplane(ctx *gin.Context) {
-	userID := GetCurrentUserID()
+	userID := uint(1) // ← Вместо GetCurrentUserID()
+
 	flightServID, err := h.Repository.GetOrCreateCartFlightServ(userID)
 	if err != nil {
 		ctx.JSON(http.StatusOK, gin.H{

@@ -1,2 +1,14 @@
 ServiceHost = "0.0.0.0"
 ServicePort = 8080 
+
+
+secret = "your-super-secret-jwt-key-change-in-production"
+expiration_hours = 24
+
+
+host = "localhost"
+port = 6379
+password = "redis_password"
+db = 0
+dial_timeout = "10s"
+read_timeout = "10s"

@@ -15,9 +15,14 @@ import (
 
 func (h *Handler) GetAsgarServices(ctx *gin.Context) {
 	search := ctx.Query("search")
+	var services []ds.ASGARService
+	var err error
 
-	// ВСЕГДА используем SearchServicesByName, даже если search пустой
-	services, err := h.Repository.SearchServicesByName(search)
+	if search == "" {
+		services, err = h.Repository.GetAllServices()
+	} else {
+		services, err = h.Repository.SearchServicesByName(search)
+	}
 
 	if err != nil {
 		h.errorResponse(ctx, http.StatusInternalServerError, err)
@@ -137,7 +142,8 @@ func (h *Handler) DeleteAsgarService(ctx *gin.Context) {
 }
 
 func (h *Handler) AddServiceToMiniplane(ctx *gin.Context) {
-	userID := GetCurrentUserID()
+	userID := uint(1) // ← Вместо GetCurrentUserID()
+
 	idStr := ctx.Param("id")
 	serviceID, err := strconv.Atoi(idStr)
 	if err != nil {

@@ -96,11 +96,11 @@ func (r *Repository) UpdateRequestItem(id uint, quantity int) error {
 	return r.db.Model(&ds.Subjserv{}).Where("id = ?", id).Update("quantity", quantity).Error
 }
 
-// GetUserByLogin - пользователь по логину
+/* GetUserByLogin - пользователь по логину
 func (r *Repository) GetUserByLogin(login string, user *ds.Avius) error {
 	return r.db.Where("login = ?", login).First(user).Error
 }
-
+*/
 // CreateUser - создание пользователя
 func (r *Repository) CreateUser(user *ds.Avius) error {
 	return r.db.Create(user).Error

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt" // ДОБАВИТЬ этот импорт
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -17,42 +18,73 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	// 1. Сначала добавляем flight_serv_id как NULLABLE
-	if !db.Migrator().HasColumn(&ds.Subjserv{}, "flight_serv_id") {
-		db.Exec("ALTER TABLE subjservs ADD COLUMN flight_serv_id BIGINT")
-		log.Println("✅ Добавлен flight_serv_id")
+	// Add role column if not exists
+	if !db.Migrator().HasColumn(&ds.Avius{}, "role") {
+		db.Exec("ALTER TABLE avius ADD COLUMN role VARCHAR(20) DEFAULT 'user'")
+		log.Println("✅ Добавлено поле role в таблицу avius")
 	}
 
-	// 2. Переносим данные из miniplane_id в flight_serv_id
-	db.Exec("UPDATE subjservs SET flight_serv_id = miniplane_id WHERE flight_serv_id IS NULL")
-	log.Println("✅ Данные перенесены из miniplane_id в flight_serv_id")
+	// Update existing users
+	db.Exec("UPDATE avius SET role = 'moderator' WHERE is_moderator = true")
+	db.Exec("UPDATE avius SET role = 'user' WHERE role IS NULL OR role = ''")
 
-	// 4. Теперь делаем flight_serv_id NOT NULL
-	db.Exec("ALTER TABLE subjservs ALTER COLUMN flight_serv_id SET NOT NULL")
-	log.Println("✅ flight_serv_id установлен как NOT NULL")
+	log.Println("✅ Роли пользователей обновлены")
 
-	// 5. Удаляем старый столбец miniplane_id
-	if db.Migrator().HasColumn(&ds.Subjserv{}, "miniplane_id") {
-		db.Exec("ALTER TABLE subjservs DROP COLUMN miniplane_id")
-		log.Println("✅ Столбец miniplane_id удален")
-	}
-
-	// 6. Добавляем статус в flight_servs если нет
-	if !db.Migrator().HasColumn(&ds.FlightServ{}, "status") {
-		db.Exec("ALTER TABLE flight_servs ADD COLUMN status VARCHAR(15) NOT NULL DEFAULT 'cart'")
-		log.Println("✅ Добавлен статус в flight_servs")
-	}
-
-	// 7. Создаем/обновляем остальные таблицы
+	// Run full migration
 	err = db.AutoMigrate(
-		&ds.ASGARService{}, // услуги
-		&ds.Avius{},        // пользователи
-		&ds.FlightServ{},   // заявки
-		&ds.Subjserv{},     // позиции заказа
+		&ds.ASGARService{},
+		&ds.Avius{},
+		&ds.FlightServ{},
+		&ds.Subjserv{},
 	)
 	if err != nil {
 		panic("cant migrate db")
 	}
 
-	log.Println("🎉 Миграция завершена успешно!")
+	// ========== СОЗДАЕМ ТЕСТОВЫХ ПОЛЬЗОВАТЕЛЕЙ ==========
+	testUsers := []ds.Avius{
+		{
+			Login:    "Meow",
+			Password: "meow123",
+			Role:     "user",
+		},
+		{
+			Login:       "moderator1",
+			Password:    "moderator123",
+			Role:        "moderator",
+			IsModerator: true,
+		},
+	}
+
+	for _, user := range testUsers {
+		// Проверяем, существует ли уже пользователь
+		var existingUser ds.Avius
+		result := db.Where("login = ?", user.Login).First(&existingUser)
+
+		if result.Error == gorm.ErrRecordNotFound {
+			// Пользователя нет - создаем нового с хешированным паролем
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+			if err != nil {
+				log.Printf("⚠️ Ошибка хеширования пароля для %s: %v", user.Login, err)
+				continue
+			}
+			user.Password = string(hashedPassword)
+
+			if err := db.Create(&user).Error; err != nil {
+				log.Printf("⚠️ Ошибка создания пользователя %s: %v", user.Login, err)
+			} else {
+				log.Printf("✅ Создан пользователь: %s (роль: %s)", user.Login, user.Role)
+			}
+		} else {
+			// Пользователь уже существует - обновляем роль если нужно
+			if existingUser.Role != user.Role {
+				db.Model(&existingUser).Update("role", user.Role)
+				log.Printf("🔄 Обновлена роль пользователя %s на %s", user.Login, user.Role)
+			} else {
+				log.Printf("ℹ️ Пользователь %s уже существует (роль: %s)", user.Login, existingUser.Role)
+			}
+		}
+	}
+
+	log.Println("🎉 Миграция ролей и тестовых пользователей завершена успешно!")
 }

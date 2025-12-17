@@ -1,0 +1,516 @@
+basePath: /api
+definitions:
+  handler.LoginRequest:
+    properties:
+      login:
+        example: user123
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  handler.RegisterRequest:
+    properties:
+      login:
+        example: user123
+        minLength: 3
+        type: string
+      password:
+        example: password123
+        minLength: 6
+        type: string
+    required:
+    - login
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@asgaravia.com
+    name: API Support
+    url: http://www.asgaravia.com/support
+  description: API для системы заказа авиауслуг ASGAR Avia
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: ASGAR Avia API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Вход пользователя с проверкой SHA-1 хеша пароля и выдачей JWT токена
+      parameters:
+      - description: Учетные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный вход
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный запрос
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Неверные учетные данные
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Аутентификация пользователя
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Завершение сессии пользователя (токен добавляется в Redis blacklist)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный выход
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Не авторизован
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Выход пользователя
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрация нового пользователя в системе с SHA-1 хешированием
+        пароля
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Успешная регистрация
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверные данные
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /flight-servs:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список заявок текущего аутентифицированного пользователя
+        (фильтрует "удален" и "черновик")
+      parameters:
+      - description: Фильтр по статусу
+        in: query
+        name: status
+        type: string
+      - description: 'Дата от (формат: YYYY-MM-DD)'
+        in: query
+        name: date_from
+        type: string
+      - description: 'Дата до (формат: YYYY-MM-DD)'
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить заявки пользователя
+      tags:
+      - flight-servs
+  /flight-servs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Помечает заявку как удаленную (меняет статус на 'удален')
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удалить заявку
+      tags:
+      - flight-servs
+    get:
+      consumes:
+      - application/json
+      description: Возвращает детальную информацию о конкретной заявке
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить детали заявки
+      tags:
+      - flight-servs
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные существующей заявки
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновляемые поля
+        in: body
+        name: updates
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Обновить заявку
+      tags:
+      - flight-servs
+  /flight-servs/{id}/submit:
+    put:
+      consumes:
+      - application/json
+      description: Отправляет черновик заявки на обработку (меняет статус на 'формирование')
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Отправить заявку на обработку
+      tags:
+      - flight-servs
+  /moderator/flight-servs:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех заявок в системе (только для модераторов)
+      parameters:
+      - description: Фильтр по статусу
+        in: query
+        name: status
+        type: string
+      - description: 'Дата от (формат: YYYY-MM-DD)'
+        in: query
+        name: date_from
+        type: string
+      - description: 'Дата до (формат: YYYY-MM-DD)'
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить все заявки (для модератора)
+      tags:
+      - flight-servs
+  /moderator/flight-servs/{id}/complete:
+    put:
+      consumes:
+      - application/json
+      description: Завершает обработку заявки (только для модераторов)
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Действие: complete (по умолчанию) или reject'
+        in: query
+        name: action
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Завершить заявку (для модератора)
+      tags:
+      - flight-servs
+  /users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Получение информации о текущем пользователе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное получение профиля
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Не авторизован
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получение профиля пользователя
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Обновление данных пользователя (логин, пароль)
+      parameters:
+      - description: Обновляемые поля
+        in: body
+        name: updates
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Профиль обновлен
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверные данные
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Не авторизован
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Обновление профиля пользователя
+      tags:
+      - users
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
